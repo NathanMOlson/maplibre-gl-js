@@ -191,7 +191,7 @@ describe('transform', () => {
         };
 
         const transform = new MercatorTransform(0, 24, 0, 85, true);
-        transform.resize(1024, 512);
+        transform.resize(1024, 1024);
         transform.setCenter(new LngLat(-0.12345, 0.23456));
         transform.setZoom(12);
         let str = "";
