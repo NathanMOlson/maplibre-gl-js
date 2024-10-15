@@ -44,7 +44,7 @@ export function getTileAABB(tileID: {x: number; y: number; z: number}, wrap: num
 export function mercatorCoveringTiles(transform: IReadonlyTransform, frustum: Frustum, plane: vec4, cameraCoord: MercatorCoordinate, centerCoord: MercatorCoordinate, options: CoveringTilesOptions): Array<OverscaledTileID> {
     // No change of LOD behavior for pitch lower than 60 and when there is no top padding: return only tile ids from the requested zoom level
     // Use 0.1 as an epsilon to avoid for explicit == 0.0 floating point checks
-    const allowVariableZoom = !!options.terrain || transform.pitch > 60.0 || transform.padding.top >= 0.1;
+    const allowVariableZoom = true;//!!options.terrain || transform.pitch > 60.0 || transform.padding.top >= 0.1;
     const details: CoveringTilesDetails = {
         distanceToTile2d,
         getWrap,

@@ -183,6 +183,102 @@ describe('transform', () => {
         }
     });
 
+    describe('coveringTilesCountAvg', () => {
+        const options = {
+            minzoom: 1,
+            maxzoom: 24,
+            tileSize: 512
+        };
+
+        const transform = new MercatorTransform(0, 24, 0, 85, true);
+        transform.resize(1024, 512);
+        transform.setCenter(new LngLat(-0.12345, 0.23456));
+        transform.setZoom(12);
+        let str = "";
+        for (let pitch = 0; pitch <= 85; pitch++) {
+            transform.setPitch(pitch);
+            str += pitch.toString();
+            for (let v = 0; v <= 2; v++)
+            {
+                transform.setTileZoomDeadband(v);
+                for(let b = 0; b <=2; b++) {
+                    if (v == 0 && b != 0) {
+                        // continue;
+                    }
+                    transform.setPitchTileLoadingBehavior(b);
+                    str += " ";
+                    let n_tiles = 0;
+                    for(let bearing = 0; bearing <= 45; bearing++){
+                        transform.setBearing(bearing);
+                        n_tiles += transform.coveringTiles(options).length;
+                    }
+                    str += n_tiles;
+                }
+            }
+            str += "\n";
+        }
+        console.log(str);
+    });
+
+    describe('coveringTilesCount', () => {
+        const options = {
+            minzoom: 1,
+            maxzoom: 24,
+            tileSize: 512
+        };
+
+        const transform = new MercatorTransform(0, 24, 0, 85, true);
+        transform.resize(1024, 512);
+        transform.setCenter(new LngLat(-0.12345, 0.23456));
+        transform.setZoom(12);
+        let str = "";
+        for (let pitch = 0; pitch <= 85; pitch++) {
+            transform.setPitch(pitch);
+            str += pitch.toString();
+            for (let v = 0; v <= 1; v+= 0.5)
+            {
+                transform.setTileZoomDeadband(v);
+                for(let b = 0; b <=2; b++) {
+                    transform.setPitchTileLoadingBehavior(b);
+                    str += " ";
+                    str += transform.coveringTiles(options).length;
+                }
+            }
+            str += "\n";
+        }
+        console.log(str);
+    });
+
+    describe('coveringTilesCountBearing', () => {
+        const options = {
+            minzoom: 1,
+            maxzoom: 24,
+            tileSize: 512
+        };
+
+        const transform = new MercatorTransform(0, 24, 0, 85, true);
+        transform.resize(1024, 512);
+        transform.setCenter(new LngLat(-0.12345, 0.23456));
+        transform.setZoom(12);
+        transform.setBearing(45);
+        let str = "";
+        for (let pitch = 0; pitch <= 85; pitch++) {
+            transform.setPitch(pitch);
+            str += pitch.toString();
+            for (let v = 0; v <= 1; v+= 0.5)
+            {
+                transform.setTileZoomDeadband(v);
+                for(let b = 0; b <=2; b++) {
+                    transform.setPitchTileLoadingBehavior(b);
+                    str += " ";
+                    str += transform.coveringTiles(options).length;
+                }
+            }
+            str += "\n";
+        }
+        console.log(str);
+    });
+
     describe('coveringTiles', () => {
         const options = {
             minzoom: 1,
