@@ -24,6 +24,14 @@ import type {MapSourceDataEvent} from '../ui/events';
 import type {Terrain} from '../render/terrain';
 import type {CanvasSourceSpecification} from './canvas_source';
 
+type TileResult = {
+    tile: Tile;
+    tileID: OverscaledTileID;
+    queryGeometry: Array<Point>;
+    cameraQueryGeometry: Array<Point>;
+    scale: number;
+}
+
 /**
  * @internal
  * `SourceCache` is responsible for
@@ -224,8 +232,8 @@ export class SourceCache extends Evented {
             return renderables.sort((a_: Tile, b_: Tile) => {
                 const a = a_.tileID;
                 const b = b_.tileID;
-                const rotatedA = (new Point(a.canonical.x, a.canonical.y))._rotate(this.transform.angle);
-                const rotatedB = (new Point(b.canonical.x, b.canonical.y))._rotate(this.transform.angle);
+                const rotatedA = (new Point(a.canonical.x, a.canonical.y))._rotate(-this.transform.bearingInRadians);
+                const rotatedB = (new Point(b.canonical.x, b.canonical.y))._rotate(-this.transform.bearingInRadians);
                 return a.overscaledZ - b.overscaledZ || rotatedB.y - rotatedA.y || rotatedB.x - rotatedA.x;
             }).map(tile => tile.tileID.key);
         }
@@ -948,9 +956,8 @@ export class SourceCache extends Evented {
      * @param pointQueryGeometry - coordinates of the corners of bounding rectangle
      * @returns result items have `{tile, minX, maxX, minY, maxY}`, where min/max bounding values are the given bounds transformed in into the coordinate space of this tile.
      */
-    tilesIn(pointQueryGeometry: Array<Point>, maxPitchScaleFactor: number, has3DLayer: boolean): any[] {
-
-        const tileResults = [];
+    tilesIn(pointQueryGeometry: Array<Point>, maxPitchScaleFactor: number, has3DLayer: boolean) {
+        const tileResults: TileResult[] = [];
 
         const transform = this.transform;
         if (!transform) return tileResults;
