@@ -69,6 +69,10 @@ export type CameraOptions = CenterZoomBearing & {
      * The desired roll in degrees. The roll is the angle about the camera boresight.
      */
     roll?: number;
+    /**
+     * The elevation of the center point in meters above sea level.
+     */
+    elevation?: number;
 };
 
 /**
@@ -842,6 +846,10 @@ export abstract class Camera extends Evented {
 
         const zoomChanged = tr.zoom !== oldZoom;
 
+        if ('elevation' in options && tr.elevation !== +options.elevation) {
+            tr.setElevation(+options.elevation);
+        }
+
         if ('bearing' in options && tr.bearing !== +options.bearing) {
             bearingChanged = true;
             tr.setBearing(+options.bearing);
@@ -1142,11 +1150,11 @@ export abstract class Camera extends Evented {
                 elevation
             } = modifier(nextTransform);
             if (center) nextTransform.setCenter(center);
+            if (elevation !== undefined) nextTransform.setElevation(elevation);
             if (zoom !== undefined) nextTransform.setZoom(zoom);
             if (roll !== undefined) nextTransform.setRoll(roll);
             if (pitch !== undefined) nextTransform.setPitch(pitch);
             if (bearing !== undefined) nextTransform.setBearing(bearing);
-            if (elevation !== undefined) nextTransform.setElevation(elevation);
             finalTransform.apply(nextTransform);
         }
         this.transform.apply(finalTransform);
