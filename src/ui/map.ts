@@ -3238,8 +3238,7 @@ export class Map extends Camera {
         this._placementDirty = this.style && this.style._updatePlacement(this.transform, this.showCollisionBoxes, fadeDuration, this._crossSourceCollisions, transformUpdateResult.forcePlacementUpdate);
 
         if (this._placementDirty) {
-            this.triggerRepaint();
-            return this;
+            return this._render(paintStartTimeStamp);
         }
 
         if (transformUpdateResult.fireProjectionEvent) {
