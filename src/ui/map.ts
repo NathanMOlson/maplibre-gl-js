@@ -687,7 +687,6 @@ export class Map extends Camera {
                 this._update(false);
             }
         })
-            .on('zoom', () => this._update(true))
             .on('terrain', () => {
                 this.painter.terrainFacilitator.dirty = true;
                 this._update(true);
