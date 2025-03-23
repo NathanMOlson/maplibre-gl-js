@@ -44,6 +44,18 @@ export function drawHillshade(painter: Painter, sourceCache: SourceCache, layer:
         }
     }
 }
+export class ElevationColormap
+{
+    colormap: Uint8Array;
+    scale: number;
+    offset: number;
+
+    constructor() {
+        this.colormap = new Uint8Array([0,0,255, 255, 255,255,0,255]);
+        this.scale = 1.0/1500.0;
+        this.offset = 0.25;
+    }
+}
 
 function renderHillshade(
     painter: Painter,
@@ -62,6 +74,11 @@ function renderHillshade(
     const gl = context.gl;
     const program = painter.useProgram('hillshade');
     const align = !painter.options.moving;
+
+    context.activeTexture.set(gl.TEXTURE5);
+    const elevationColormap = new ElevationColormap();
+    const colormapTexture = new Texture(context, new RGBAImage({width: elevationColormap.colormap.length/4, height: 1}, elevationColormap.colormap), gl.RGBA);
+    colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
 
     for (const coord of coords) {
         const tile = sourceCache.getTile(coord);
@@ -84,7 +101,7 @@ function renderHillshade(
         });
 
         program.draw(context, gl.TRIANGLES, depthMode, stencilModes[coord.overscaledZ], colorMode, CullFaceMode.backCCW,
-            hillshadeUniformValues(painter, tile, layer), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
+            hillshadeUniformValues(painter, tile, layer, elevationColormap), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
     }
 }
 
@@ -130,10 +147,6 @@ function prepareHillshade(
             tile.demTexture = new Texture(context, pixelData, gl.RGBA, {premultiply: false});
             tile.demTexture.bind(gl.NEAREST, gl.CLAMP_TO_EDGE);
         }
-
-        context.activeTexture.set(gl.TEXTURE5);
-        const colormapTexture = new Texture(context, new RGBAImage({width: 2, height: 1}, new Uint8Array([0,0,255, 255, 255,255,0,255])), gl.RGBA);
-        colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
 
         context.activeTexture.set(gl.TEXTURE0);
 

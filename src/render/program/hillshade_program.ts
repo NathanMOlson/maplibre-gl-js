@@ -18,6 +18,7 @@ import type {Painter} from '../painter';
 import type {HillshadeStyleLayer} from '../../style/style_layer/hillshade_style_layer';
 import type {DEMData} from '../../data/dem_data';
 import type {OverscaledTileID} from '../../source/tile_id';
+import { ElevationColormap } from '../draw_hillshade';
 
 export type HillshadeUniformsType = {
     'u_image': Uniform1i;
@@ -63,6 +64,7 @@ const hillshadeUniformValues = (
     painter: Painter,
     tile: Tile,
     layer: HillshadeStyleLayer,
+    elevationColormap: ElevationColormap
 ): UniformValues<HillshadeUniformsType> => {
     const shadow = layer.paint.get('hillshade-shadow-color');
     const highlight = layer.paint.get('hillshade-highlight-color');
@@ -81,8 +83,8 @@ const hillshadeUniformValues = (
         'u_highlight': highlight,
         'u_accent': accent,
         'u_colormap': 5,
-        'u_colormap_scale': 2.0/3000.0,
-        'u_colormap_offset': 0.25
+        'u_colormap_scale': elevationColormap.scale,
+        'u_colormap_offset': elevationColormap.offset
     };
 };
 
