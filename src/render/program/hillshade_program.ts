@@ -27,6 +27,8 @@ export type HillshadeUniformsType = {
     'u_highlight': UniformColor;
     'u_accent': UniformColor;
     'u_colormap': Uniform1i;
+    'u_colormap_scale': Uniform1f;
+    'u_colormap_offset': Uniform1f;
 };
 
 export type HillshadePrepareUniformsType = {
@@ -44,7 +46,9 @@ const hillshadeUniforms = (context: Context, locations: UniformLocations): Hills
     'u_shadow': new UniformColor(context, locations.u_shadow),
     'u_highlight': new UniformColor(context, locations.u_highlight),
     'u_accent': new UniformColor(context, locations.u_accent),
-    'u_colormap': new Uniform1i(context, locations.u_colormap)
+    'u_colormap': new Uniform1i(context, locations.u_colormap),
+    'u_colormap_scale': new Uniform1f(context, locations.u_colormap_scale),
+    'u_colormap_offset': new Uniform1f(context, locations.u_colormap_offset)
 });
 
 const hillshadePrepareUniforms = (context: Context, locations: UniformLocations): HillshadePrepareUniformsType => ({
@@ -76,7 +80,9 @@ const hillshadeUniformValues = (
         'u_shadow': shadow,
         'u_highlight': highlight,
         'u_accent': accent,
-        'u_colormap': 5
+        'u_colormap': 5,
+        'u_colormap_scale': 2.0/3000.0,
+        'u_colormap_offset': 0.25
     };
 };
 

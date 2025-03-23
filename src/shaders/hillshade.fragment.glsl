@@ -7,6 +7,8 @@ uniform vec4 u_shadow;
 uniform vec4 u_highlight;
 uniform vec4 u_accent;
 uniform sampler2D u_colormap;
+uniform float u_colormap_scale;
+uniform float u_colormap_offset;
 
 #define PI 3.141592653589793
 
@@ -48,7 +50,7 @@ void main() {
     vec4 shade_color = mix(u_shadow, u_highlight, shade) * sin(scaledSlope) * clamp(intensity * 2.0, 0.0, 1.0);
     fragColor = accent_color * (1.0 - shade_color.a) + shade_color;
 
-    vec4 hypsometric = texture(u_colormap, vec2(elevation*2.0/3000.0, 0)+0.25);
+    vec4 hypsometric = texture(u_colormap, vec2(elevation*u_colormap_scale + u_colormap_offset, 0));
     fragColor = mix(hypsometric, fragColor, fragColor.a);
 
 #ifdef OVERDRAW_INSPECTOR
