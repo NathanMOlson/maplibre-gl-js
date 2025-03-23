@@ -13,6 +13,7 @@ void main() {
     vec4 pixel = texture(u_image, v_pos);
 
     vec2 deriv = ((pixel.rg * 2.0) - 1.0);
+    float elevation = pixel.b*3000.0;
 
     // We divide the slope by a scale factor based on the cosin of the pixel's approximate latitude
     // to account for mercator projection distortion. see #4807 for details
@@ -45,6 +46,20 @@ void main() {
     float shade = abs(mod((aspect + azimuth) / PI + 0.5, 2.0) - 1.0);
     vec4 shade_color = mix(u_shadow, u_highlight, shade) * sin(scaledSlope) * clamp(intensity * 2.0, 0.0, 1.0);
     fragColor = accent_color * (1.0 - shade_color.a) + shade_color;
+
+    vec4 low;
+    low.r = 0.0;
+    low.g = 0.0;
+    low.b = 1.0;
+    low.a = 1.0;
+    vec4 high;
+    high.r = 1.0;
+    high.g = 1.0;
+    high.b = 0.0;
+    high.a = 1.0;
+    vec4 hypsometric = mix(low, high, pixel.b);
+    fragColor = mix(hypsometric, fragColor, fragColor.a);
+    fragColor = hypsometric;
 
 #ifdef OVERDRAW_INSPECTOR
     fragColor = vec4(1.0);
