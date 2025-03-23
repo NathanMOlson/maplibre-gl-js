@@ -12,6 +12,7 @@ import type {Painter, RenderOptions} from './painter';
 import type {SourceCache} from '../source/source_cache';
 import type {HillshadeStyleLayer} from '../style/style_layer/hillshade_style_layer';
 import type {OverscaledTileID} from '../source/tile_id';
+import { RGBAImage } from '../util/image';
 
 export function drawHillshade(painter: Painter, sourceCache: SourceCache, layer: HillshadeStyleLayer, tileIDs: Array<OverscaledTileID>, renderOptions: RenderOptions) {
     if (painter.renderPass !== 'offscreen' && painter.renderPass !== 'translucent') return;
@@ -129,6 +130,10 @@ function prepareHillshade(
             tile.demTexture = new Texture(context, pixelData, gl.RGBA, {premultiply: false});
             tile.demTexture.bind(gl.NEAREST, gl.CLAMP_TO_EDGE);
         }
+
+        context.activeTexture.set(gl.TEXTURE5);
+        const colormapTexture = new Texture(context, new RGBAImage({width: 2, height: 1}, new Uint8Array([0,0,255, 255, 255,255,0,255])), gl.RGBA);
+        colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
 
         context.activeTexture.set(gl.TEXTURE0);
 
