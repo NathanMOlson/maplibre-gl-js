@@ -13,6 +13,8 @@ import type {SourceCache} from '../source/source_cache';
 import type {HillshadeStyleLayer} from '../style/style_layer/hillshade_style_layer';
 import type {OverscaledTileID} from '../source/tile_id';
 import { RGBAImage } from '../util/image';
+import { lerp } from '../util/util';
+import { Color } from '@maplibre/maplibre-gl-style-spec';
 
 export function drawHillshade(painter: Painter, sourceCache: SourceCache, layer: HillshadeStyleLayer, tileIDs: Array<OverscaledTileID>, renderOptions: RenderOptions) {
     if (painter.renderPass !== 'offscreen' && painter.renderPass !== 'translucent') return;
@@ -48,12 +50,31 @@ export class ElevationColormap
 {
     colormap: Uint8Array;
     scale: number;
-    offset: number;
+    elevationStart: number;
 
-    constructor() {
-        this.colormap = new Uint8Array([0,0,255, 255, 255,255,0,255]);
-        this.scale = 1.0/1500.0;
-        this.offset = 0.25;
+    constructor(colormapSpec: Array<number | Color>) {
+        this.scale = 1.0/750.0;
+        const colormapSize = 256;
+        this.elevationStart = colormapSpec[0] as number;
+        const elevationEnd = colormapSpec[colormapSpec.length-2] as number;
+        this.colormap = new Uint8Array(colormapSize*4);
+
+        let elevationIndex = 0;
+
+        for(let i = 0; i < colormapSize; i++) {
+            const elevation = lerp(this.elevationStart, elevationEnd, i/(colormapSize-1));
+            while(elevationIndex < colormapSpec.length/2 - 1 && (colormapSpec[2*elevationIndex + 2] as number) < elevation) {
+                elevationIndex++;
+            }
+            const e1 = colormapSpec[2*elevationIndex] as number;
+            const c1 = colormapSpec[2*elevationIndex+1] as Color;
+            const e2 = colormapSpec[2*elevationIndex+2] as number;
+            const c2 = colormapSpec[2*elevationIndex+3] as Color;
+            const mix = (elevation - e1) / (e2 - e1);
+            for(let j = 0; j < 4; j++) {
+                this.colormap[4*i+j] = 255*((1-mix)*c1.rgb[j] + mix*c2.rgb[j]);
+            }
+        }
     }
 }
 
@@ -75,8 +96,10 @@ function renderHillshade(
     const program = painter.useProgram('hillshade');
     const align = !painter.options.moving;
 
+
+    const colormapSpec = new Array<number | Color>(0, Color.parse("#000088"), 10, Color.parse("#00AA00"), 1500, Color.parse("#884422"), 3000, Color.parse("#FFFFFF"));
     context.activeTexture.set(gl.TEXTURE5);
-    const elevationColormap = new ElevationColormap();
+    const elevationColormap = new ElevationColormap(colormapSpec);
     const colormapTexture = new Texture(context, new RGBAImage({width: elevationColormap.colormap.length/4, height: 1}, elevationColormap.colormap), gl.RGBA);
     colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
 
