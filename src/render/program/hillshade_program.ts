@@ -18,7 +18,6 @@ import type {Painter} from '../painter';
 import type {HillshadeStyleLayer} from '../../style/style_layer/hillshade_style_layer';
 import type {DEMData} from '../../data/dem_data';
 import type {OverscaledTileID} from '../../source/tile_id';
-import { ElevationColormap } from '../draw_hillshade';
 
 export type HillshadeUniformsType = {
     'u_image': Uniform1i;
@@ -85,7 +84,7 @@ const hillshadeUniformValues = (
     };
 };
 
-const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData, elevationColormap: ElevationColormap): UniformValues<HillshadePrepareUniformsType> => {
+const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData, elevationRange: {start: number, end: number}): UniformValues<HillshadePrepareUniformsType> => {
 
     const stride = dem.stride;
     const matrix = mat4.create();
@@ -99,8 +98,8 @@ const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData, e
         'u_dimension': [stride, stride],
         'u_zoom': tileID.overscaledZ,
         'u_unpack': dem.getUnpackVector(),
-        'u_colormap_scale': elevationColormap.scale,
-        'u_elevation_start': elevationColormap.elevationStart
+        'u_colormap_scale': 1.0 / (elevationRange.end - elevationRange.start),
+        'u_elevation_start': elevationRange.start
     };
 };
 

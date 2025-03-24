@@ -70,7 +70,7 @@ void main() {
     fragColor = clamp(vec4(
         deriv.x / 2.0 + 0.5,
         deriv.y / 2.0 + 0.5,
-        (e - u_elevation_start)*u_colormap_scale,
+        (e - u_elevation_start)*u_colormap_scale*4.0,
         1.0), 0.0, 1.0);
 
 #ifdef OVERDRAW_INSPECTOR
