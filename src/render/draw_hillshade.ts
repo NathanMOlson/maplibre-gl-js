@@ -53,10 +53,10 @@ export class ElevationColormap
     elevationStart: number;
 
     constructor(colormapSpec: Array<number | Color>) {
-        this.scale = 1.0/750.0;
         const colormapSize = 256;
         this.elevationStart = colormapSpec[0] as number;
         const elevationEnd = colormapSpec[colormapSpec.length-2] as number;
+        this.scale = 4.0 / (elevationEnd - this.elevationStart);
         this.colormap = new Uint8Array(colormapSize*4);
 
         let elevationIndex = 0;
