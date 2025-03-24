@@ -104,9 +104,11 @@ function prepareHillshade(
     const context = painter.context;
     const gl = context.gl;
 
-    const colorRampTexture = getColorRampTexture(context, layer);
-    context.activeTexture.set(gl.TEXTURE5);
-    colorRampTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
+    if(layer.colorRamp) {
+        const colorRampTexture = getColorRampTexture(context, layer);
+        context.activeTexture.set(gl.TEXTURE5);
+        colorRampTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
+    }
 
     for (const coord of tileIDs) {
         const tile = sourceCache.getTile(coord);

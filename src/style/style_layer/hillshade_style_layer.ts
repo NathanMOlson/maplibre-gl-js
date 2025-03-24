@@ -4,7 +4,7 @@ import properties, {type HillshadePaintPropsPossiblyEvaluated} from './hillshade
 import {type Transitionable, type Transitioning, type PossiblyEvaluated} from '../properties';
 
 import type {HillshadePaintProps} from './hillshade_style_layer_properties.g';
-import type {LayerSpecification} from '@maplibre/maplibre-gl-style-spec';
+import {Interpolate, ZoomConstantExpression, type LayerSpecification} from '@maplibre/maplibre-gl-style-spec';
 import { Texture } from '../../render/texture';
 import { RGBAImage } from '../../util/image';
 import { renderColorRamp } from '../../util/color_ramp';
@@ -26,17 +26,23 @@ export class HillshadeStyleLayer extends StyleLayer {
     
     _updateColorRamp() {
         const expression = this._transitionablePaint._values['color-relief'].value.expression;
-        this.elevationRange = {start:0, end:3000};
-        this.colorRamp = renderColorRamp({
-            expression,
-            evaluationKey: 'elevation',
-            image: this.colorRamp,
-            clips: [this.elevationRange]
-        });
+        if (expression instanceof ZoomConstantExpression && expression._styleExpression.expression instanceof Interpolate) {
+            const interpolater = expression._styleExpression.expression;
+            this.elevationRange = {start: interpolater.labels[0], end: interpolater.labels[interpolater.labels.length-1]};
+            this.colorRamp = renderColorRamp({
+                expression,
+                evaluationKey: 'elevation',
+                image: this.colorRamp,
+                clips: [this.elevationRange]
+            });
+        } else{
+            this.elevationRange = {start:0, end:1};
+            this.colorRamp = null;
+        }
         this.colorRampTexture = null;
     }
 
     hasOffscreenPass() {
-        return this.paint.get('hillshade-exaggeration') !== 0 && this.visibility !== 'none';
+        return this.visibility !== 'none' && (this.paint.get('hillshade-exaggeration') !== 0 ||  !!this.colorRamp);
     }
 }
