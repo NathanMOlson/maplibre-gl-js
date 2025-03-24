@@ -96,13 +96,6 @@ function renderHillshade(
     const program = painter.useProgram('hillshade');
     const align = !painter.options.moving;
 
-
-    const colormapSpec = new Array<number | Color>(0, Color.parse("#000088"), 10, Color.parse("#00AA00"), 1500, Color.parse("#884422"), 3000, Color.parse("#FFFFFF"));
-    context.activeTexture.set(gl.TEXTURE5);
-    const elevationColormap = new ElevationColormap(colormapSpec);
-    const colormapTexture = new Texture(context, new RGBAImage({width: elevationColormap.colormap.length/4, height: 1}, elevationColormap.colormap), gl.RGBA);
-    colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
-
     for (const coord of coords) {
         const tile = sourceCache.getTile(coord);
         const fbo = tile.fbo;
@@ -124,7 +117,7 @@ function renderHillshade(
         });
 
         program.draw(context, gl.TRIANGLES, depthMode, stencilModes[coord.overscaledZ], colorMode, CullFaceMode.backCCW,
-            hillshadeUniformValues(painter, tile, layer, elevationColormap), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
+            hillshadeUniformValues(painter, tile, layer), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
     }
 }
 
@@ -141,6 +134,13 @@ function prepareHillshade(
 
     const context = painter.context;
     const gl = context.gl;
+
+
+    const colormapSpec = new Array<number | Color>(0, Color.parse("#000088"), 10, Color.parse("#00AA00"), 1500, Color.parse("#884422"), 3000, Color.parse("#FFFFFF"));
+    context.activeTexture.set(gl.TEXTURE5);
+    const elevationColormap = new ElevationColormap(colormapSpec);
+    const colormapTexture = new Texture(context, new RGBAImage({width: elevationColormap.colormap.length/4, height: 1}, elevationColormap.colormap), gl.RGBA);
+    colormapTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
 
     for (const coord of tileIDs) {
         const tile = sourceCache.getTile(coord);
@@ -188,7 +188,7 @@ function prepareHillshade(
 
         painter.useProgram('hillshadePrepare').draw(context, gl.TRIANGLES,
             depthMode, stencilMode, colorMode, CullFaceMode.disabled,
-            hillshadeUniformPrepareValues(tile.tileID, dem),
+            hillshadeUniformPrepareValues(tile.tileID, dem, elevationColormap),
             null, null, layer.id, painter.rasterBoundsBuffer,
             painter.quadTriangleIndexBuffer, painter.rasterBoundsSegments);
 

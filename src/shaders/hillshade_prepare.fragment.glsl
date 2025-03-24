@@ -9,6 +9,8 @@ in vec2 v_pos;
 uniform vec2 u_dimension;
 uniform float u_zoom;
 uniform vec4 u_unpack;
+uniform float u_colormap_scale;
+uniform float u_elevation_start;
 
 float getElevation(vec2 coord, float bias) {
     // Convert encoded elevation value to meters
@@ -68,7 +70,7 @@ void main() {
     fragColor = clamp(vec4(
         deriv.x / 2.0 + 0.5,
         deriv.y / 2.0 + 0.5,
-        e/3000.0,
+        (e - u_elevation_start)*u_colormap_scale,
         1.0), 0.0, 1.0);
 
 #ifdef OVERDRAW_INSPECTOR

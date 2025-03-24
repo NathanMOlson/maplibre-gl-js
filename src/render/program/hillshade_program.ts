@@ -28,8 +28,6 @@ export type HillshadeUniformsType = {
     'u_highlight': UniformColor;
     'u_accent': UniformColor;
     'u_colormap': Uniform1i;
-    'u_colormap_scale': Uniform1f;
-    'u_elevation_start': Uniform1f;
 };
 
 export type HillshadePrepareUniformsType = {
@@ -38,6 +36,8 @@ export type HillshadePrepareUniformsType = {
     'u_dimension': Uniform2f;
     'u_zoom': Uniform1f;
     'u_unpack': Uniform4f;
+    'u_colormap_scale': Uniform1f;
+    'u_elevation_start': Uniform1f;
 };
 
 const hillshadeUniforms = (context: Context, locations: UniformLocations): HillshadeUniformsType => ({
@@ -47,9 +47,7 @@ const hillshadeUniforms = (context: Context, locations: UniformLocations): Hills
     'u_shadow': new UniformColor(context, locations.u_shadow),
     'u_highlight': new UniformColor(context, locations.u_highlight),
     'u_accent': new UniformColor(context, locations.u_accent),
-    'u_colormap': new Uniform1i(context, locations.u_colormap),
-    'u_colormap_scale': new Uniform1f(context, locations.u_colormap_scale),
-    'u_elevation_start': new Uniform1f(context, locations.u_elevation_start)
+    'u_colormap': new Uniform1i(context, locations.u_colormap)
 });
 
 const hillshadePrepareUniforms = (context: Context, locations: UniformLocations): HillshadePrepareUniformsType => ({
@@ -57,14 +55,15 @@ const hillshadePrepareUniforms = (context: Context, locations: UniformLocations)
     'u_image': new Uniform1i(context, locations.u_image),
     'u_dimension': new Uniform2f(context, locations.u_dimension),
     'u_zoom': new Uniform1f(context, locations.u_zoom),
-    'u_unpack': new Uniform4f(context, locations.u_unpack)
+    'u_unpack': new Uniform4f(context, locations.u_unpack),
+    'u_colormap_scale': new Uniform1f(context, locations.u_colormap_scale),
+    'u_elevation_start': new Uniform1f(context, locations.u_elevation_start)
 });
 
 const hillshadeUniformValues = (
     painter: Painter,
     tile: Tile,
-    layer: HillshadeStyleLayer,
-    elevationColormap: ElevationColormap
+    layer: HillshadeStyleLayer
 ): UniformValues<HillshadeUniformsType> => {
     const shadow = layer.paint.get('hillshade-shadow-color');
     const highlight = layer.paint.get('hillshade-highlight-color');
@@ -82,13 +81,11 @@ const hillshadeUniformValues = (
         'u_shadow': shadow,
         'u_highlight': highlight,
         'u_accent': accent,
-        'u_colormap': 5,
-        'u_colormap_scale': elevationColormap.scale,
-        'u_elevation_start': elevationColormap.elevationStart
+        'u_colormap': 5
     };
 };
 
-const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData): UniformValues<HillshadePrepareUniformsType> => {
+const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData, elevationColormap: ElevationColormap): UniformValues<HillshadePrepareUniformsType> => {
 
     const stride = dem.stride;
     const matrix = mat4.create();
@@ -101,7 +98,9 @@ const hillshadeUniformPrepareValues = (tileID: OverscaledTileID, dem: DEMData): 
         'u_image': 1,
         'u_dimension': [stride, stride],
         'u_zoom': tileID.overscaledZ,
-        'u_unpack': dem.getUnpackVector()
+        'u_unpack': dem.getUnpackVector(),
+        'u_colormap_scale': elevationColormap.scale,
+        'u_elevation_start': elevationColormap.elevationStart
     };
 };
 

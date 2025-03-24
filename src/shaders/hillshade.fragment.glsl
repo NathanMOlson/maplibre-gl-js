@@ -7,8 +7,6 @@ uniform vec4 u_shadow;
 uniform vec4 u_highlight;
 uniform vec4 u_accent;
 uniform sampler2D u_colormap;
-uniform float u_colormap_scale;
-uniform float u_elevation_start;
 
 #define PI 3.141592653589793
 
@@ -16,7 +14,6 @@ void main() {
     vec4 pixel = texture(u_image, v_pos);
 
     vec2 deriv = ((pixel.rg * 2.0) - 1.0);
-    float elevation = pixel.b*3000.0;
 
     // We divide the slope by a scale factor based on the cosin of the pixel's approximate latitude
     // to account for mercator projection distortion. see #4807 for details
@@ -50,7 +47,7 @@ void main() {
     vec4 shade_color = mix(u_shadow, u_highlight, shade) * sin(scaledSlope) * clamp(intensity * 2.0, 0.0, 1.0);
     fragColor = accent_color * (1.0 - shade_color.a) + shade_color;
 
-    vec4 hypsometric = texture(u_colormap, vec2((elevation - u_elevation_start)*u_colormap_scale, 0));
+    vec4 hypsometric = texture(u_colormap, vec2(pixel.b, 0));
     fragColor = mix(hypsometric, fragColor, fragColor.a);
 
 #ifdef OVERDRAW_INSPECTOR
