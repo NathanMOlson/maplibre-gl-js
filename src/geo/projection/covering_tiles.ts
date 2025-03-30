@@ -9,8 +9,8 @@ import type {Terrain} from '../../render/terrain';
 import type {Frustum} from '../../util/primitives/frustum';
 
 declare const window: any;
-window.TILE_ZOOM_RATE = 1.0;
-window.TILE_ZOOM_DEADBAND = 0.0;
+window.MAX_ZOOM_LEVELS = 5.0;
+window.TILE_COUNT_RATIO = 3.0;
 
 type CoveringTilesResult = {
     tileID: OverscaledTileID;
@@ -101,6 +101,18 @@ export function isTileVisible(frustum: Frustum, aabb: Aabb, plane?: vec4): Inter
     return IntersectionResult.Partial;
 }
 
+function intCosXToP(p:number, x1: number, x2: number): number {
+    const N = 10;
+    let sum = 0;
+    const dx = (x2-x1)/N;
+    for( let i = 0; i < N; i++)
+    {
+        const x = x1 + (i+0.5)/10 * (x2-x1);
+        sum += dx*Math.pow(Math.cos(x), p);
+    }
+    return sum;
+}
+
 function calculateTileZoom(requestedCenterZoom: number,
     distanceToTile2D: number,
     distanceToTileZ: number,
@@ -112,22 +124,28 @@ function calculateTileZoom(requestedCenterZoom: number,
     * At 1, tiles are loaded with approximately constant screen area.
     * At 2, tiles are loaded with approximately constant screen Y resolution.
     */
-    const pitchTileLoadingBehavior = window.TILE_ZOOM_RATE;
+    //const pitchTileLoadingBehavior = window.TILE_ZOOM_RATE;
+    const pitchTileLoadingBehavior = 2*((1-window.MAX_ZOOM_LEVELS)/Math.log2(Math.cos(degreesToRadians(89.25))/Math.cos(degreesToRadians(89.25-cameraVerticalFOV)))-1);
+
+    const centerPitch = Math.acos(distanceToTileZ/distanceToCenter3D);
+    const tileCountPitch0 = 2*intCosXToP(pitchTileLoadingBehavior-1, 0, degreesToRadians(cameraVerticalFOV/2));
+    const highestPitch = Math.min(degreesToRadians(89.25), centerPitch+degreesToRadians(cameraVerticalFOV/2));
+    const tileCount = intCosXToP(pitchTileLoadingBehavior-1, highestPitch-degreesToRadians(cameraVerticalFOV), highestPitch);
     /**
     * Controls how tiles are loaded at high pitch angles. Controls how different the distance to a tile must be (compared with the center point)
     * before a new zoom level is requested. For example, if tileZoomDeadband = 1 and the center zoom is 14, tiles distant enough to be loaded at
     * z13 will be loaded at z14, and tiles distant enough to be loaded at z14 will be loaded at z15. A higher number causes more tiles to be loaded
     * at the center zoom level. This also results in more tiles being loaded overall.
     */
-    const tileZoomDeadband = window.TILE_ZOOM_DEADBAND;
-    let thisTileDesiredZ = requestedCenterZoom;
+    // const tileZoomDeadband = window.TILE_ZOOM_DEADBAND;
     const thisTilePitch = Math.atan(distanceToTile2D / distanceToTileZ);
     const distanceToTile3D = Math.hypot(distanceToTile2D, distanceToTileZ);
     // if distance to candidate tile is a tiny bit farther than distance to center,
     // use the same zoom as the center. This is achieved by the scaling distance ratio by cos(fov/2)
-    thisTileDesiredZ = requestedCenterZoom + scaleZoom(distanceToCenter3D / distanceToTile3D / Math.max(0.5, Math.cos(degreesToRadians(cameraVerticalFOV / 2))));
+    // console.log(tileCountPitch0, tileCount, tileCount/tileCountPitch0, scaleZoom(Math.max(1,tileCount/tileCountPitch0/window.TILE_COUNT_RATIO))/2);
+    let thisTileDesiredZ = requestedCenterZoom - scaleZoom(Math.max(1,tileCount/tileCountPitch0/window.TILE_COUNT_RATIO))/2 + scaleZoom(distanceToCenter3D / distanceToTile3D / Math.max(0.5, Math.cos(degreesToRadians(cameraVerticalFOV / 2))));
     thisTileDesiredZ += pitchTileLoadingBehavior * scaleZoom(Math.cos(thisTilePitch)) / 2;
-    thisTileDesiredZ = thisTileDesiredZ + clamp(requestedCenterZoom - thisTileDesiredZ, -tileZoomDeadband, tileZoomDeadband);
+    // thisTileDesiredZ = thisTileDesiredZ + clamp(requestedCenterZoom - thisTileDesiredZ, -tileZoomDeadband, tileZoomDeadband);
     return thisTileDesiredZ;
 }
 
