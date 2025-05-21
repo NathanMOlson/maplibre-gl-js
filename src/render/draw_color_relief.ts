@@ -52,15 +52,23 @@ function renderColorRelief(
     const context = painter.context;
     const transform = painter.transform;
     const gl = context.gl;
-    const maxLength = Math.floor((gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS) - 3) / 2);
-    const colorRampLength = layer.getColorRamp(maxLength).colorStops.length;
-    const defines = [`#define NUM_ELEVATION_STOPS ${colorRampLength}`];
-    const program = painter.useProgram('colorRelief', null, false, defines);
+    const program = painter.useProgram('colorRelief');
     const align = !painter.options.moving;
+
+    let firstTile = true;
 
     for (const coord of coords) {
         const tile = sourceCache.getTile(coord);
         const dem = tile.dem;
+        if(firstTile) {
+            const maxLength = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+            const {elevationTexture, colorTexture} = layer.getColorRampTextures(context, maxLength, dem.getUnpackVector());
+            context.activeTexture.set(gl.TEXTURE1);
+            elevationTexture.bind(gl.NEAREST, gl.CLAMP_TO_EDGE);
+            context.activeTexture.set(gl.TEXTURE4);
+            colorTexture.bind(gl.LINEAR, gl.CLAMP_TO_EDGE);
+            firstTile = false;
+        }
 
         if (!dem || !dem.data) {
             continue;
@@ -94,6 +102,6 @@ function renderColorRelief(
         });
 
         program.draw(context, gl.TRIANGLES, depthMode, stencilModes[coord.overscaledZ], colorMode, CullFaceMode.backCCW,
-            colorReliefUniformValues(layer, tile.dem, maxLength), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
+            colorReliefUniformValues(layer, tile.dem), terrainData, projectionData, layer.id, mesh.vertexBuffer, mesh.indexBuffer, mesh.segments);
     }
 }
