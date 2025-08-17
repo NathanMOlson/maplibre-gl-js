@@ -510,6 +510,10 @@ describe('Browser tests', () => {
             };
         });
 
+        for (const e of pageErrors) {
+            console.log("pageError:", e);
+        }
+
         expect(pageErrors).toHaveLength(0);
         expect(result.terrainEnabled).toBe(true);
         expect(result.zoom).toBeGreaterThan(10);
