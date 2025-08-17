@@ -455,7 +455,7 @@ describe('Browser tests', () => {
 
         const result = await page.evaluate(async () => {
 
-            let mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
+            const mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
 
             // Prepare a style that has the terrain source defined but no terrain enabled yet
             map.setStyle({
