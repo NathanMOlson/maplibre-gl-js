@@ -491,7 +491,7 @@ describe('Browser tests', () => {
             map.easeTo({
                 zoom: 18,
                 pitch: 60,
-                duration: 3000,
+                duration: 5000,
             });
 
             // In the next animation frame, enable terrain
