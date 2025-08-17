@@ -449,11 +449,13 @@ describe('Browser tests', () => {
         expect(center.lat).toBeCloseTo(47.29960);
     });
 
-    test('Enable terrain during camera ease should not crash', {retry: 3, timeout: 50000}, async () => {
+    test('Enable terrain during camera ease should not crash', {retry: 3, timeout: 10000}, async () => {
         const pageErrors: string[] = [];
         page.on('pageerror', error => pageErrors.push(error.message));
 
         const result = await page.evaluate(async () => {
+
+            let mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
 
             // Prepare a style that has the terrain source defined but no terrain enabled yet
             map.setStyle({
@@ -481,18 +483,20 @@ describe('Browser tests', () => {
                 ]
             });
 
-            await new Promise<void>(resolve => map.once('idle', () => resolve()));
+            await mapIdle;
+
+            mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
+
+            // In the next animation frame, enable terrain
+            requestAnimationFrame(() => {
+                map.setTerrain({source: 'terrainSource', exaggeration: 1});
+            });
 
             // Start an animated camera transition
             map.easeTo({
                 zoom: 18,
                 pitch: 60,
-                duration: 300,
-            });
-
-            // In the next animation frame, enable terrain
-            requestAnimationFrame(() => {
-                map.setTerrain({source: 'terrainSource', exaggeration: 1});
+                duration: 3000,
             });
 
             // Wait until everything is idle again
