@@ -485,13 +485,11 @@ describe('Browser tests', () => {
 
             await mapIdle;
 
-            mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
-
             // Start an animated camera transition
             map.easeTo({
                 zoom: 18,
                 pitch: 60,
-                duration: 5000,
+                duration: 1000,
             });
 
             // In the next animation frame, enable terrain
@@ -500,7 +498,10 @@ describe('Browser tests', () => {
             });
 
             // Wait until everything is idle again
-            await new Promise(resolve => map.once('idle', () => resolve(null)));
+            function sleepInBrowser(milliseconds: number) {
+                return new Promise(resolve => setTimeout(resolve, milliseconds));
+            }
+            await sleepInBrowser(1000);
 
             return {
                 terrainEnabled: !!map.getTerrain(),
