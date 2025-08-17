@@ -487,16 +487,16 @@ describe('Browser tests', () => {
 
             mapIdle = new Promise<void>(resolve => map.once('idle', () => resolve()));
 
-            // In the next animation frame, enable terrain
-            requestAnimationFrame(() => {
-                map.setTerrain({source: 'terrainSource', exaggeration: 1});
-            });
-
             // Start an animated camera transition
             map.easeTo({
                 zoom: 18,
                 pitch: 60,
                 duration: 3000,
+            });
+
+            // In the next animation frame, enable terrain
+            requestAnimationFrame(() => {
+                map.setTerrain({source: 'terrainSource', exaggeration: 1});
             });
 
             // Wait until everything is idle again
