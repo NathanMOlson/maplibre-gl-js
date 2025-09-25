@@ -194,7 +194,12 @@ class SourceExpressionBinder implements AttributeBinder {
 
     populatePaintArray(newLength: number, feature: Feature, options: PaintOptions) {
         const start = this.paintVertexArray.length;
-        const value = this.expression.evaluate(new EvaluationParameters(0, options), feature, {}, options.canonical, [], options.formattedSection);
+        let value = 0;
+        try {
+            value = this.expression.evaluate(new EvaluationParameters(0, options), feature, {}, options.canonical, [], options.formattedSection);
+        } catch (e) {
+            console.log(e);
+        }
         this.paintVertexArray.resize(newLength);
         this._setPaintValue(start, newLength, value);
     }
